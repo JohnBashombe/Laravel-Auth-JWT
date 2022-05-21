@@ -55,16 +55,35 @@ class Handler extends ExceptionHandler
 
     public function render($request, Throwable $exception)
     {
-        if ($request->is('api/*')) {
+        $statusCode = 400;
+        $errorMessage = "error";
 
-            $statusCode = 400;
-            $errorMessage = "error";
+        if ($request->is('*')) {
 
-            if ($exception->getMessage() == 'Route [login] not defined.') {
+            $errors = $exception->getMessage();
+
+            if ($errors === 'Route [login] not defined.') {
                 $errorMessage = "Unauthorized";
                 $statusCode = 401;
+            } else if (
+                $errors === 'The POST method is not supported for this route. Supported methods: GET, HEAD.' ||
+                $errors === 'The PUT method is not supported for this route. Supported methods: GET, HEAD.' ||
+                $errors === 'The DELETE method is not supported for this route. Supported methods: GET, HEAD.' ||
+                $errors === 'The PATCH method is not supported for this route. Supported methods: GET, HEAD.' ||
+                $errors === ''
+            ) {
+                $errorMessage = "Page Not Found";
+                $statusCode = 404;
+            } else if ($errors  === 'Too Many Attempts.') {
+                $errorMessage = "Too Many Attempts.";
+                $statusCode = 429;
             }
 
+            return response()->json([
+                'status' => $statusCode,
+                'message' => $errorMessage
+            ], $statusCode);
+        } else {
             return response()->json([
                 'status' => $statusCode,
                 'message' => $errorMessage
