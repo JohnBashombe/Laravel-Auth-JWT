@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Todo;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 use Mockery\Undefined;
 
 class TodoController extends Controller
@@ -24,12 +25,24 @@ class TodoController extends Controller
 
     public function store(Request $request)
     {
-        $request->validate(
-            [
-                'title' => 'required|string|max:255',
-                'description' => 'required|string'
-            ]
+        $rules = array(
+            'title' => 'required|string|max:255',
+            'description' => 'required|string'
         );
+
+        $validator = Validator::make($request->all(), $rules);
+
+        if ($validator->fails()) {
+            $errors = json_decode($validator->errors(), true);
+            $message = 'error';
+            if (isset($errors['email'])) {
+                $message = $errors['email'][0];
+            } else if (isset($errors['password'])) {
+                $message = $errors['password'][0];
+            }
+
+            return response()->json(['status' => 400, 'message' => $message], 400);
+        }
 
         $todo = Todo::create([
             'title' => $request->title,
@@ -63,10 +76,25 @@ class TodoController extends Controller
 
     public function update(Request $request, $id)
     {
-        $request->validate([
+
+        $rules = array(
             'title' => 'required|string|max:255',
-            'description' => 'required|string',
-        ]);
+            'description' => 'required|string'
+        );
+
+        $validator = Validator::make($request->all(), $rules);
+
+        if ($validator->fails()) {
+            $errors = json_decode($validator->errors(), true);
+            $message = 'error';
+            if (isset($errors['email'])) {
+                $message = $errors['email'][0];
+            } else if (isset($errors['password'])) {
+                $message = $errors['password'][0];
+            }
+
+            return response()->json(['status' => 400, 'message' => $message], 400);
+        }
 
         $todo = Todo::find($id);
         $todo->title = $request->title;

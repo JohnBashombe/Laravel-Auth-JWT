@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use App\Models\User;
 use Illuminate\Support\Facades\Validator;
-use Symfony\Component\HttpKernel\Exception\HttpException;
+use Twilio\Rest\Client;
 
 class AuthController extends Controller
 {
@@ -28,8 +28,15 @@ class AuthController extends Controller
         $validator = Validator::make($request->all(), $rules);
 
         if ($validator->fails()) {
-            $errors = $validator->errors();
-            return response()->json(['error' => 'errors', 'data' => $errors]);
+            $errors = json_decode($validator->errors(), true);
+            $message = 'error';
+            if (isset($errors['email'])) {
+                $message = $errors['email'][0];
+            } else if (isset($errors['password'])) {
+                $message = $errors['password'][0];
+            }
+
+            return response()->json(['status' => 400, 'message' => $message], 400);
         }
 
         $credentials = $request->only('email', 'password');
@@ -50,7 +57,7 @@ class AuthController extends Controller
                 'token' => $token,
                 'type' => 'bearer',
             ]
-        ]);
+        ], 200);
     }
 
     public function register(Request $request)
@@ -65,8 +72,17 @@ class AuthController extends Controller
         $validator = Validator::make($request->all(), $rules);
 
         if ($validator->fails()) {
-            $errors = $validator->errors();
-            return response()->json(['error' => 'errors', 'data' => $errors]);
+            $errors = json_decode($validator->errors(), true);
+            $message = 'error';
+            if (isset($errors['name'])) {
+                $message = $errors['name'][0];
+            } else if (isset($errors['email'])) {
+                $message = $errors['email'][0];
+            } else if (isset($errors['password'])) {
+                $message = $errors['password'][0];
+            }
+
+            return response()->json(['status' => 400, 'message' => $message], 400);
         }
 
 
@@ -85,7 +101,7 @@ class AuthController extends Controller
                 'token' => $token,
                 'type' => 'bearer',
             ]
-        ]);
+        ], 200);
     }
 
     public function logout()
@@ -94,7 +110,7 @@ class AuthController extends Controller
         return response()->json([
             'status' => 'success',
             'message' => 'Successfully logged out',
-        ]);
+        ], 200);
     }
 
     public function refresh()
@@ -110,6 +126,61 @@ class AuthController extends Controller
                 'token' => $token,
                 'type' => 'bearer',
             ]
-        ]);
+        ], 200);
+    }
+
+    /**
+     * Sends sms to user using Twilio's programmable sms client
+     * @param Request $requests
+     */
+    public function sendMessage(Request $request)
+    {
+        $rules = array(
+            // 'phone' => 'required|string|regex:/(+)[0-9]{12}'
+            'phone' => 'required|string|min:11|max:13'
+        );
+
+        $validator = Validator::make($request->all(), $rules);
+
+        if ($validator->fails()) {
+            error_log($validator->errors());
+            $errors = json_decode($validator->errors(), true);
+            $message = 'error';
+            if (isset($errors['phone'])) {
+                $message = $errors['phone'][0];
+            }
+            return response()->json(['status' => 400, 'message' => $message], 400);
+        }
+
+        return response()->json(['status' => 400, 'message' => "error"], 400);
+
+        $body = "we msenge, njo apa kwanza tena changamka (:";
+        $phone = $request->phone;
+        $account_sid = getenv("TWILIO_SID");
+        $auth_token = getenv("TWILIO_AUTH_TOKEN");
+        $my_phone_number = getenv("TWILIO_NUMBER");
+
+        try {
+            $client = new Client($account_sid, $auth_token);
+            $client->messages->create($phone, ['from' => $my_phone_number, 'body' => $body]);
+            //logic
+            return response()->json([
+                'status' => 200,
+                'message' => 'message sent',
+            ], 200);
+        } catch (\Exception $exception) {
+            // error_log($exception->getMessage());
+            if (str_contains($exception, '[HTTP 400] Unable to create record:')) {
+                return response()->json([
+                    'status' => 400,
+                    'message' => 'message not sent',
+                ], 400);
+            } else {
+                return response()->json([
+                    'status' => 400,
+                    'message' => 'unknown error',
+                ], 400);
+            }
+        }
     }
 }

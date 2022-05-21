@@ -38,8 +38,14 @@ Route::group(['middleware' => 'auth:api'], function () {
         Route::put('todo/{id}',  'update');
         Route::delete('todo/{id}',  'destroy');
     });
+
+    Route::middleware(['throttle:sms'])->group(function () {
+        Route::controller(AuthController::class)->group(function () {
+            Route::post('verify', 'sendMessage');
+        });
+    });
 });
 
 Route::fallback(function () {
-    return response()->json(['message' => 'page not found'], 404);
+    return response()->json(['status' => 404, 'message' => 'page not found'], 404);
 });
