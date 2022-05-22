@@ -32,7 +32,8 @@ class AuthController extends Controller
             $message = 'error';
             if (isset($errors['email'])) {
                 $message = $errors['email'][0];
-            } else if (isset($errors['password'])) {
+            }
+            else if (isset($errors['password'])) {
                 $message = $errors['password'][0];
             }
 
@@ -76,9 +77,11 @@ class AuthController extends Controller
             $message = 'error';
             if (isset($errors['name'])) {
                 $message = $errors['name'][0];
-            } else if (isset($errors['email'])) {
+            }
+            else if (isset($errors['email'])) {
                 $message = $errors['email'][0];
-            } else if (isset($errors['password'])) {
+            }
+            else if (isset($errors['password'])) {
                 $message = $errors['password'][0];
             }
 
@@ -152,9 +155,7 @@ class AuthController extends Controller
             return response()->json(['status' => 400, 'message' => $message], 400);
         }
 
-        return response()->json(['status' => 400, 'message' => "error"], 400);
-
-        $body = "we msenge, njo apa kwanza tena changamka (:";
+        $body = "we mjinga, acha usumbufu (:";
         $phone = $request->phone;
         $account_sid = getenv("TWILIO_SID");
         $auth_token = getenv("TWILIO_AUTH_TOKEN");
@@ -168,14 +169,16 @@ class AuthController extends Controller
                 'status' => 200,
                 'message' => 'message sent',
             ], 200);
-        } catch (\Exception $exception) {
+        }
+        catch (\Exception $exception) {
             // error_log($exception->getMessage());
             if (str_contains($exception, '[HTTP 400] Unable to create record:')) {
                 return response()->json([
                     'status' => 400,
                     'message' => 'message not sent',
                 ], 400);
-            } else {
+            }
+            else {
                 return response()->json([
                     'status' => 400,
                     'message' => 'unknown error',
