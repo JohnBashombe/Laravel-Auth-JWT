@@ -49,7 +49,7 @@ class Handler extends ExceptionHandler
     public function register()
     {
         $this->reportable(function (Throwable $e) {
-            //
+        //
         });
     }
 
@@ -65,25 +65,30 @@ class Handler extends ExceptionHandler
             if ($errors === 'Route [login] not defined.') {
                 $errorMessage = "Unauthorized";
                 $statusCode = 401;
-            } else if (
-                $errors === 'The POST method is not supported for this route. Supported methods: GET, HEAD.' ||
-                $errors === 'The PUT method is not supported for this route. Supported methods: GET, HEAD.' ||
-                $errors === 'The DELETE method is not supported for this route. Supported methods: GET, HEAD.' ||
-                $errors === 'The PATCH method is not supported for this route. Supported methods: GET, HEAD.' ||
-                $errors === ''
+            }
+            else if (
+            $errors === 'The POST method is not supported for this route. Supported methods: GET, HEAD.' ||
+            $errors === 'The PUT method is not supported for this route. Supported methods: GET, HEAD.' ||
+            $errors === 'The DELETE method is not supported for this route. Supported methods: GET, HEAD.' ||
+            $errors === 'The PATCH method is not supported for this route. Supported methods: GET, HEAD.' ||
+            $errors === ''
             ) {
                 $errorMessage = "Page Not Found";
                 $statusCode = 404;
-            } else if ($errors  === 'Too Many Attempts.') {
+            }
+            else if ($errors === 'Too Many Attempts.') {
                 $errorMessage = "Too Many Attempts.";
                 $statusCode = 429;
             }
+
+            error_log($errors);
 
             return response()->json([
                 'status' => $statusCode,
                 'message' => $errorMessage
             ], $statusCode);
-        } else {
+        }
+        else {
             return response()->json([
                 'status' => $statusCode,
                 'message' => $errorMessage

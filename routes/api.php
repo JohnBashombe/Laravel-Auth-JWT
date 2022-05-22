@@ -4,17 +4,9 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\TodoController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\MailController;
 
-/*
-|--------------------------------------------------------------------------
-| API Routes
-|--------------------------------------------------------------------------
-|
-| Here is where you can register API routes for your application. These
-| routes are loaded by the RouteServiceProvider within a group which
-| is assigned the "api" middleware group. Enjoy building your API!
-|
-*/
+/* |-------------------------------------------------------------------------- | API Routes |-------------------------------------------------------------------------- | | Here is where you can register API routes for your application. These | routes are loaded by the RouteServiceProvider within a group which | is assigned the "api" middleware group. Enjoy building your API! | */
 
 // Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 //     return $request->user();
@@ -34,18 +26,25 @@ Route::controller(TodoController::class)->group(function () {
 
 Route::group(['middleware' => 'auth:api'], function () {
     Route::controller(TodoController::class)->group(function () {
-        Route::post('todo',  'store');
-        Route::put('todo/{id}',  'update');
-        Route::delete('todo/{id}',  'destroy');
-    });
+            Route::post('todo', 'store');
+            Route::put('todo/{id}', 'update');
+            Route::delete('todo/{id}', 'destroy');
+        }
+        );
 
-    Route::middleware(['throttle:sms'])->group(function () {
-        Route::controller(AuthController::class)->group(function () {
-            Route::post('verify', 'sendMessage');
+        Route::middleware(['throttle:sms'])->group(function () {
+            Route::controller(AuthController::class)->group(function () {
+                    Route::post('verify', 'sendMessage');
+                }
+                );
+            }
+            );
         });
-    });
-});
 
 Route::fallback(function () {
     return response()->json(['status' => 404, 'message' => 'page not found'], 404);
+});
+
+Route::controller(MailController::class)->group(function () {
+    Route::get('mail', 'index');
 });
