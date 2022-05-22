@@ -81,6 +81,8 @@ class Handler extends ExceptionHandler
                 $statusCode = 429;
             }
 
+            error_log($errors);
+
             return response()->json([
                 'status' => $statusCode,
                 'message' => $errorMessage
